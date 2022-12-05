@@ -18,7 +18,7 @@ app.MapGet("/", (HafezDbContext db) =>
 {
     var count = db.Fals.Count();
     var row = new Random().Next(1, count - 1);
-    var fal = db.Fals.OrderBy(b => b.Id).Skip(row).First();
+    var fal = db.Fals.OrderBy(b => b.Id).Skip(row).FirstOrDefault();
     if (fal != null)
     {
         return Results.Ok(fal.Beit?.Split('*'));
