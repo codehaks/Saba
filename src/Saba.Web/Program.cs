@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Saba.Web.Data;
+using static System.Net.WebRequestMethods;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,9 +16,15 @@ var app = builder.Build();
 
 app.MapGet("/", (HafezDbContext db) =>
 {
-    var row = new Random().Next(1, 999);
-    var result = db.Fals.OrderBy(b=>b.Id).Skip(row).First();
-    return result.Beit.Split('*');
+    var count = db.Fals.Count();
+    var row = new Random().Next(1, count - 1);
+    var fal = db.Fals.OrderBy(b => b.Id).Skip(row).First();
+    if (fal != null)
+    {
+        return Results.Ok(fal.Beit?.Split('*'));
+    }
+
+    return Results.BadRequest();
 });
 
 app.Run();
