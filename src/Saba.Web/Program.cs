@@ -8,11 +8,19 @@ builder.Services.AddDbContext<HafezDbContext>(options =>
     options.UseSqlite("Data source=hafezdata.sqlite");
     options.LogTo(Console.WriteLine);
 });
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
-
-app.MapGet("/", (HafezDbContext db) =>
+app.MapGet("/api/fal", (HafezDbContext db) =>
 {
     var count = db.Fals.Count();
     var row = new Random().Next(1, count - 1);
@@ -23,6 +31,6 @@ app.MapGet("/", (HafezDbContext db) =>
     }
 
     return Results.BadRequest();
-});
+}).WithOpenApi(); 
 
 app.Run();
