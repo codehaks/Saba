@@ -1,7 +1,5 @@
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Saba.Web.Data;
-using static System.Net.WebRequestMethods;
 
 var builder = WebApplication.CreateBuilder(args);
 
