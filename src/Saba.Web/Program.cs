@@ -11,20 +11,21 @@ builder.Services.AddDbContext<HafezDbContext>(options =>
     //options.LogTo(Console.WriteLine);
 });
 
-builder.Services.AddRateLimiter(options =>
-{
-    options.AddFixedWindowLimiter("slowdown", windowOptions => {
-        windowOptions.Window=TimeSpan.FromSeconds(1);
-        windowOptions.PermitLimit = 1;
-        windowOptions.QueueLimit = 1;
-    });
-});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddOutputCache(options =>
+{
+    options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromSeconds(1)));
+    options.AddPolicy("short", builder => builder.Expire(TimeSpan.FromSeconds(2)));
+    options.AddPolicy("long", builder => builder.Expire(TimeSpan.FromSeconds(30)));
+
+});
+
 var app = builder.Build();
 
-app.UseRateLimiter();
+app.UseOutputCache();
 
 if (app.Environment.IsDevelopment())
 {
@@ -40,11 +41,17 @@ app.MapGet("/api/fal", (HafezDbContext db,[FromServices]ILogger<Program> logger,
     var fal = db.Fals.OrderBy(b => b.Id).Skip(row).FirstOrDefault();
     if (fal != null)
     {
-        return Results.Ok(fal.Beit?.Split('*'));
+        var result = new FalInfo { Beits = fal.Beit?.Split('*'), TimeCreated =TimeOnly.FromDateTime(DateTime.Now) };
+        return Results.Ok(result);
     }
 
     return Results.BadRequest();
-}).RequireRateLimiting("slowdown")
-.WithOpenApi(); 
+}).WithOpenApi().CacheOutput("short"); 
 
 app.Run();
+
+class FalInfo
+{
+    public string[]? Beits { get; set; }
+    public TimeOnly TimeCreated { get; set; }
+}
